@@ -89,6 +89,7 @@ accel<-read_csv("data/accel_data.csv")%>%
   )%>% 
   relocate(type, .before=minute)
 accel$minute<-as.numeric(accel$minute)
+accel$day<-factor(accel$day, levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
 ```
 
 The data set contains `r ncol(accel)` variables and `r nrow(accel)` observations. Variables include the week, day, type of the day (weekend/weekday), and the minute accelerometer collects the activity counts, and the number of counts.
@@ -103,9 +104,17 @@ The resulting table shows the daily total activity for each week. There is no ap
 
 ```{r}
 accel%>%
-  ggplot(aes(x=minute,y=counts, fill=day,color=day))+
-  geom_line()+
+  ggplot(aes(x=minute,y=counts))+
+  geom_line(aes(color=day))+
+  geom_smooth()+
+  viridis::scale_color_viridis(
+    option="plasma",
+    name = "Day of the Week", 
+    discrete = TRUE
+  )+
   labs(title="24-hour Activity Plot for Each Day of the Week", y="Activity Counts", x="Minute of the Day")
 ```
 
 From the graph, we can observe that earlier in the day, individual would have less activity counts, and the number increases as the day goes. During the middle of the day, individual has more activities counts on Sunday that on any other day. As we move onto later in the day, individual has more activities counts on all days in the week except for Sunday. 
+
+Problem 3
