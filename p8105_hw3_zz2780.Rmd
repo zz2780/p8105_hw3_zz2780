@@ -10,9 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 knitr::opts_chunk$set(
   fig.width = 6,
-  fig.asp = .6,
+  fig.asp = .9,
   out.width = "90%"
 )
+library(patchwork)
 ```
 
 Problem 1
@@ -118,3 +119,67 @@ accel%>%
 From the graph, we can observe that earlier in the day, individual would have less activity counts, and the number increases as the day goes. During the middle of the day, individual has more activities counts on Sunday that on any other day. As we move onto later in the day, individual has more activities counts on all days in the week except for Sunday. 
 
 Problem 3
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
+The data set contains `r ncol(ny_noaa)` variables and `r nrow(ny_noaa)` observations. The data contains id for different locations, date of the record, and the temperature, precipitation, and snowfall of that day. The missing data in tmin and tmax will be an issue because tmin and tmax are character variables. Once they are converted to numeric variables the NA will becomes a problem. And if the data has missing value for the entire month or year, calculating the mean of this values for a specific month/year will be a problem.
+
+
+```{r}
+ny_noaa<-ny_noaa%>%
+  janitor::clean_names()%>%
+  separate(date, into=c("year","month","day"))%>%
+  mutate(tmin=as.numeric(tmin), 
+         tmax=as.numeric(tmax),
+         tmin=tmin/10, 
+         tmax=tmax/10,
+         prcp=prcp/10,
+         year=as.numeric(year),
+         month=tolower(month.abb[as.numeric(month)]))
+ny_noaa%>%
+  count(snow, sort=TRUE)
+```
+
+For snowfall, zero is the most common observed value, because there isn't snowing most of the year. 
+
+```{r}
+ny_noaa%>%
+  filter(month=="jan" | month=="jul")%>%
+  group_by(id, month)%>%
+  summarise(mean_tmax=mean(tmax))%>%
+  na.omit()%>%
+  ggplot(aes(x=id,y=mean_tmax))+
+  geom_bar(stat='identity')+
+  facet_grid(.~month)+
+  labs(title="Average Max Temperature in January and July Across Years", x="Station ID", y="Average Max Temperature")
+```
+
+I can observe that the average max temperature in January fluctuates around 0 degree Celsius. Only one station has average max temperature high than 5 dgrees Celsius. The average max temperatures in July are all significantly higher than that in January, with most of which falling within the range of 20 to 30 degrees Celsius. There is no significant outlier. 
+
+
+```{r}
+tmax_tmin=
+  ny_noaa%>%
+  ggplot(aes(x=tmin, y=tmax))+
+  geom_hex()+
+  labs(title="TMAX vs. TMIN")
+
+snowfall=
+  ny_noaa%>%
+  filter(snow>0 & snow <100)%>%
+  group_by(year)%>%
+  summarize(n=n())%>%
+  ggplot(aes(x=year, y=n))+
+  geom_bar(stat="identity", color="black", fill="blue")+
+  labs(title="Distribution of snowfall between 0mm and 100mm across years", x="Year", y="Counts")
+
+tmax_tmin / snowfall
+
+```
+
+
+
+
+
