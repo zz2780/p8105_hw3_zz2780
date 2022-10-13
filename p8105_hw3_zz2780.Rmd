@@ -23,14 +23,8 @@ library(p8105.datasets)
 data("instacart")
 ```
 
-The dataset instacart has `r ncol(instacart)` variables and `r nrow(instacart)` observations. Key variables describe different products that are being ordered for each order placed on instacart, including the product name and id, when it is being ordered, the aisle and department it belongs to, and the times it is reordered.
+The dataset instacart has `r ncol(instacart)` variables and `r nrow(instacart)` observations. Key variables describe different products that are being ordered for each order placed on instacart, including the product name and id, when it is being ordered, the aisle and department it belongs to, and the times it is reordered. In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products, from `r instacart%>% select(department) %>% distinct %>% count` departments, found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
 
-```{r}
-instacart %>%
-  count(department, name="num", sort=TRUE)
-```
-
-There are 21 departments.
 
 ```{r}
 instacart %>%
@@ -53,24 +47,25 @@ The graph shows number of items ordered from each aisle exluding those with less
 
 ```{r}
 instacart%>%
-  filter(aisle==c("baking ingredients", "dog food care", "packaged vegetables fruits"))%>%
-  group_by(aisle, product_name)%>%
-  summarize(num=n())%>%
-  arrange(desc(num))%>%
+  filter(aisle%in%c("baking ingredients", "dog food care", "packaged vegetables fruits"))%>%
+  group_by(aisle)%>%
+  count(product_name)%>%
+  arrange(desc(n)) %>%
   slice(1:3)
 ```
 
-Among baking ingredients, light brown sugar, pure baking soda, and organic vanilla extract are the three most popular items being ordered 157, 140, and 122 times respectively.
+Among baking ingredients, light brown sugar, pure baking soda, and cane sugar extract are the three most popular items being ordered 499, 397, and 336 times respectively.
 
-Among dog food care, organix grain free chicken & vegetable dog food, organix chicken & brown rice recipe, original dry dog are the three most popular items being ordered 14, 13, and 9 times respectively.
+Among dog food care, Snack Sticks Chicken & Rice Recipe Dog Treats, organix chicken & brown rice recipe, Small Dog Biscuits are the three most popular items being ordered 30, 28, and 26 times respectively.
 
-Among packaged vegetable fruits, organic baby spinach, organinc raspberries, and organic blueberries are the three most popular items being ordered 3324, 1920, and 1692 times respectively.
+Among packaged vegetable fruits, organic baby spinach, organinc raspberries, and organic blueberries are the three most popular items being ordered 9784, 5546, and 4966 times respectively.
 
 ```{r}
 instacart%>%
-    filter(product_name==c("Pink Lady Apples", "Coffee Ice Cream"))%>%
+    filter(product_name%in%c("Pink Lady Apples", "Coffee Ice Cream"))%>%
     group_by(product_name, order_dow)%>%
-  summarize(mean_hour=mean(order_hour_of_day))
+  summarize(mean_hour=mean(order_hour_of_day))%>%
+  knitr::kable(digits = 2)
 ```
 
 The resulting table shows that for each day of the week, the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered.
